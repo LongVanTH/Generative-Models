@@ -1,6 +1,7 @@
 Please follow the instructions for this part of the assignment in THIS order!
 
-First, download the pre-trained checkpoint from https://drive.google.com/file/d/1gtn9Jv9jBUol7iJw-94hw4j6KfpG3SZE/view?usp=sharing.
+First, download the pre-trained checkpoint from https://drive.google.com/file/d/1gtn9Jv9jBUol7iJw-94hw4j6KfpG3SZE/view?usp=sharing. You can instead use the following command to download the checkpoint:
+`gdown https://drive.google.com/uc?id\=1gtn9Jv9jBUol7iJw-94hw4j6KfpG3SZE`
 
 Diffusion models have recently become a very popular generative modeling technique. In this assignment, we will experiment with different sampling methods for diffusion models. Diffusion models apply a series of gaussian noise to an input image, and try to denoise these noisy images by predicting the noise at each timestep. For this assignment, we will use the provided pre-trained diffusion model trained on CIFAR-10 and will implement different sampling techniques for model inference. Please refer to Lilian Weng's blog post here: https://lilianweng.github.io/posts/2021-07-11-diffusion-models/ for additional explanation/derivation. In this assignment, we are following the notation from Lilian Weng's blogpost. 
 
@@ -19,15 +20,16 @@ We know how much noise we have added in the forward process. Therefore, we take 
 
 $$ \epsilon_t = f(x_t, t)$$
 
-By repeating this several times, we can predict the starting image $x_0$.
-$$\hat{x_0} = \frac{1}{\sqrt{\bar{\alpha_t}}} (x_t - \sqrt{1 - \bar{\alpha_t}} \epsilon_t)$$
+By repeating the below set of equations for multiple timesteps, we can predict the starting image $x_0$.
 
 
 To run inference using Denoising Diffusion Probabilistic Models (DDPM - [1]), we first sample a random noise vector $x_T$ and apply the denoising process repeatedly with the equations below to generate $x_0$.
 
 $$ z \sim \mathcal{N}(0, \mathcal{I})$$
 
-$$\tilde{\mu_t} = \frac{\sqrt{\alpha_t} (1 - \bar{\alpha_{t-1}})}{1 - \bar{\alpha_t}} x_t + \frac{\sqrt{\bar{\alpha_{t-1}}}\beta_t}{1 - \bar{\alpha_t}} \hat{x_0}$$
+$$\hat{x_0} = \frac{1}{\sqrt{\bar{\alpha_t}}} (x_t - \sqrt{1 - \bar{\alpha_t}} \epsilon_t)$$
+
+$$\tilde{\mu_t} = \frac{\sqrt{\alpha_t} (1 - \bar{\alpha_{t-1}})}{1 - \bar{\alpha_t}} x_t + \frac{\sqrt{\bar{\alpha_{t-1}}}\beta_t}{1 - \bar{\alpha_t}} \hat{x_0} \qquad(\text{note the }\alpha_t \text{ here})$$
 
 $$\sigma_t^2 = \tilde{\beta_t} = \frac{1 - \bar\alpha_{t - 1}}{1 - \bar\alpha_t} \beta_t$$
 
@@ -61,7 +63,7 @@ The issue with DDPM is that we need to loop over all the timestamps sequentially
 
 $$ z \sim \mathcal{N}(0, \mathcal{I})$$
 
-$$\hat{x_0} = \frac{1}{\sqrt{\bar{\alpha_{\tau_{i}}}}} (x_{\tau_{i}} - \sqrt{1 - \bar{\alpha_t}} \epsilon_t)$$
+$$\hat{x_0} = \frac{1}{\sqrt{\bar{\alpha_{\tau_{i}}}}} (x_{\tau_{i}} - \sqrt{1 - \bar{\alpha_{\tau_{i}}}} \epsilon_{\tau_{i}})$$
 
 $$\sigma_{\tau_{i}}^2 = \eta \tilde{\beta_{\tau_{i}}}, \hspace{10px} \tilde{\beta_{\tau_{i}}} = \frac{1 - \bar{\alpha_{\tau_{i - 1}}}}{1 - \bar\alpha_{\tau_{i}}} \beta_{\tau_{i - 1}}$$
 
@@ -69,7 +71,7 @@ $$\sigma_{\tau_{i}}^2 = \eta \tilde{\beta_{\tau_{i}}}, \hspace{10px} \tilde{\bet
 
 $$ \tilde{\mu_{\tau_i}} = \sqrt{\bar{\alpha_{\tau_{i - 1}}}} \hat{x_0} + \sqrt{1 - \bar{\alpha_{\tau_{i - 1}}} - \sigma_{\tau_{i}}^2} \epsilon_{\tau_{i}}$$
 
-$$ x_{\tau_{i-1}} = \tilde{\mu_{\tau_i}} + \sigma_{\tau_i}^2z$$
+$$ x_{\tau_{i-1}} = \tilde{\mu_{\tau_i}} + \sigma_{\tau_i}^z$$
 
 $$x_{\tau_{i-1}} \sim  q(x_{\tau_{i - 1}} | x_{\tau_t}, \hat{x_0} ) = \mathcal{N}(x_{\tau_{i-1}}; \tilde{\mu_{\tau_i}}, \sigma_{\tau_i} \mathcal{I})$$ 
 
