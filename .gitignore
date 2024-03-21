@@ -6,4 +6,9 @@ gan/data_gan/
 gan/data_ls_gan/
 gan/data_wgan_gp/
 datasets/
+diffusion/epoch_199.pth
+diffusion/data_ddpm/
+diffusion/data_ddim/
+
 __pycache__
+.DS_Store
